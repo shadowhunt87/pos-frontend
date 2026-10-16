@@ -1,0 +1,6 @@
+<template>
+  <svg viewBox="0 0 32 32" aria-hidden="true" class="shrink-0">
+    <rect width="32" height="32" rx="8" fill="var(--brand-600)" />
+    <path d="M9 21.5V14M14 21.5V10.5M19 21.5v-5M24 21.5V12.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" />
+  </svg>
+</template>

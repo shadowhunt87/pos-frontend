@@ -1,0 +1,365 @@
+@import 'tailwindcss';
+
+/* =============================================================================
+   Sistema de diseño · "precisión técnica"
+   Grafito para la estructura, verde azulado para una acción por pantalla,
+   superficies cálidas y estados sobrios. El modo oscuro invierte las escalas
+   (ink y brand) en vez de reescribir cada componente.
+   ============================================================================= */
+
+/* ---- Escalas base (modo claro) ------------------------------------------- */
+:root {
+  --ink-50: #f6f7f9;
+  --ink-100: #eceef2;
+  --ink-200: #dadde4;
+  --ink-300: #b9bfcb;
+  --ink-400: #8a93a3;
+  --ink-500: #636c7d;
+  --ink-600: #4a5262;
+  --ink-700: #363c49;
+  --ink-800: #232831;
+  --ink-900: #161a21;
+  --ink-950: #0d1015;
+
+  --brand-50: #effaf8;
+  --brand-100: #d7f2ed;
+  --brand-200: #b0e4da;
+  --brand-300: #7bcfc0;
+  --brand-400: #3fb3a0;
+  --brand-500: #0f9483;
+  --brand-600: #0f766e;
+  --brand-700: #115e57;
+  --brand-800: #134e48;
+  --brand-900: #0f3d38;
+
+  /* Superficies */
+  --canvas: #f6f5f2;
+  --surface: #ffffff;
+  --surface-2: #faf9f7;
+  --line: #e8e6e1;
+
+  /* Estados: base (acción y punto), soft (fondo) y strong (texto sobre soft) */
+  --success: #15803d;
+  --success-soft: #e8f5ec;
+  --success-strong: #14532d;
+  --warning: #b45309;
+  --warning-soft: #fdf3e1;
+  --warning-strong: #78350f;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --danger-strong: #7a1712;
+  --info: #2563eb;
+  --info-soft: #eaf1fd;
+  --info-strong: #1e3a8a;
+
+  --plate-blue: #1f3f94;
+  --focus: #0f9483;
+  --shadow-color: 22 26 33;
+  --selection: #b0e4da;
+  --scrim: rgb(13 16 21 / 0.4);
+  --panel: #0d1015;
+  color-scheme: light;
+}
+
+/* ---- Modo oscuro: escalas invertidas, superficies grafito --------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ink-50: #0d1015;
+    --ink-100: #161a21;
+    --ink-200: #232831;
+    --ink-300: #363c49;
+    --ink-400: #4a5262;
+    --ink-500: #8a93a3;
+    --ink-600: #b9bfcb;
+    --ink-700: #dadde4;
+    --ink-800: #eceef2;
+    --ink-900: #f6f7f9;
+    --ink-950: #ffffff;
+
+    --brand-50: #08201d;
+    --brand-100: #0c2c28;
+    --brand-200: #103d37;
+    --brand-300: #14524a;
+    --brand-400: #117a6e;
+    --brand-500: #14a191;
+    --brand-600: #3fb3a0;
+    --brand-700: #7bcfc0;
+    --brand-800: #b0e4da;
+    --brand-900: #d7f2ed;
+
+    --canvas: #101214;
+    --surface: #181b20;
+    --surface-2: #1f2328;
+    --line: #2c3139;
+
+    --success: #4ade80;
+    --success-soft: #0f2a1a;
+    --success-strong: #bbf7d0;
+    --warning: #fbbf24;
+    --warning-soft: #2d2009;
+    --warning-strong: #fde68a;
+    --danger: #f87171;
+    --danger-soft: #2e1412;
+    --danger-strong: #fecaca;
+    --info: #60a5fa;
+    --info-soft: #0f1f38;
+    --info-strong: #bfdbfe;
+
+    --plate-blue: #9db8f0;
+    --focus: #3fb3a0;
+    --shadow-color: 0 0 0;
+    --selection: #103d37;
+    --scrim: rgb(0 0 0 / 0.6);
+  --panel: #1b1e25;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ink-50: #0d1015;
+  --ink-100: #161a21;
+  --ink-200: #232831;
+  --ink-300: #363c49;
+  --ink-400: #4a5262;
+  --ink-500: #8a93a3;
+  --ink-600: #b9bfcb;
+  --ink-700: #dadde4;
+  --ink-800: #eceef2;
+  --ink-900: #f6f7f9;
+  --ink-950: #ffffff;
+
+  --brand-50: #08201d;
+  --brand-100: #0c2c28;
+  --brand-200: #103d37;
+  --brand-300: #14524a;
+  --brand-400: #117a6e;
+  --brand-500: #14a191;
+  --brand-600: #3fb3a0;
+  --brand-700: #7bcfc0;
+  --brand-800: #b0e4da;
+  --brand-900: #d7f2ed;
+
+  --canvas: #101214;
+  --surface: #181b20;
+  --surface-2: #1f2328;
+  --line: #2c3139;
+
+  --success: #4ade80;
+  --success-soft: #0f2a1a;
+  --success-strong: #bbf7d0;
+  --warning: #fbbf24;
+  --warning-soft: #2d2009;
+  --warning-strong: #fde68a;
+  --danger: #f87171;
+  --danger-soft: #2e1412;
+  --danger-strong: #fecaca;
+  --info: #60a5fa;
+  --info-soft: #0f1f38;
+  --info-strong: #bfdbfe;
+
+  --plate-blue: #9db8f0;
+  --focus: #3fb3a0;
+  --shadow-color: 0 0 0;
+  --selection: #103d37;
+  --scrim: rgb(0 0 0 / 0.6);
+  --panel: #1b1e25;
+  color-scheme: dark;
+}
+
+/* ---- Tokens expuestos a Tailwind ------------------------------------------ */
+@theme {
+  /* Colores fijos: no cambian con el tema */
+  --color-panel: var(--panel);
+  --color-scrim: var(--scrim);
+
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, monospace;
+
+  --color-ink-50: var(--ink-50);
+  --color-ink-100: var(--ink-100);
+  --color-ink-200: var(--ink-200);
+  --color-ink-300: var(--ink-300);
+  --color-ink-400: var(--ink-400);
+  --color-ink-500: var(--ink-500);
+  --color-ink-600: var(--ink-600);
+  --color-ink-700: var(--ink-700);
+  --color-ink-800: var(--ink-800);
+  --color-ink-900: var(--ink-900);
+  --color-ink-950: var(--ink-950);
+
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-plate-blue: var(--plate-blue);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-strong: var(--success-strong);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-strong: var(--warning-strong);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-strong: var(--danger-strong);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-strong: var(--info-strong);
+
+  --shadow-card: 0 1px 2px rgb(var(--shadow-color) / 0.04);
+  --shadow-lift: 0 4px 12px -6px rgb(var(--shadow-color) / 0.14);
+  --shadow-pop: 0 24px 48px -16px rgb(var(--shadow-color) / 0.28);
+
+  --animate-fade-up: fade-up 0.2s ease-out both;
+  --animate-pulse-soft: pulse-soft 1.4s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes pulse-soft {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-canvas font-sans text-ink-900 antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-semibold tracking-tight;
+  }
+  ::selection {
+    background: var(--selection);
+    color: var(--ink-900);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .input {
+    @apply block w-full rounded-lg border border-ink-200 bg-surface px-3.5 py-2.5 text-[15px] text-ink-900 transition placeholder:text-ink-400 hover:border-ink-300 focus:border-brand-500 focus:outline-none focus:ring-3 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:bg-ink-100 disabled:text-ink-500 aria-[invalid=true]:border-danger aria-[invalid=true]:focus:ring-danger/20;
+  }
+  select.input {
+    @apply appearance-none bg-[length:16px] bg-[right_0.75rem_center] bg-no-repeat pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23636c7d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+  .label {
+    @apply mb-1.5 block text-[13px] font-medium text-ink-700;
+  }
+  .hint {
+    @apply mt-1.5 text-[13px] text-ink-500;
+  }
+  .card {
+    @apply rounded-xl border border-line bg-surface p-5 shadow-card sm:p-6;
+  }
+  .card-title {
+    @apply text-[15px] font-semibold text-ink-900;
+  }
+  .eyebrow {
+    @apply text-[11px] font-semibold tracking-[0.1em] text-ink-500 uppercase;
+  }
+  .link {
+    @apply font-medium text-brand-700 underline-offset-4 hover:underline;
+  }
+  .skeleton {
+    @apply rounded-md bg-ink-100 animate-pulse-soft;
+  }
+  .table-base {
+    @apply w-full text-left text-sm;
+  }
+  .table-base thead th {
+    @apply border-b border-line bg-surface-2 px-4 py-3 text-[11px] font-semibold tracking-[0.08em] text-ink-500 uppercase;
+  }
+  .table-base tbody td {
+    @apply border-b border-line px-4 py-3 align-middle;
+  }
+  .table-base tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .table-base tbody tr {
+    @apply transition-colors hover:bg-ink-50;
+  }
+}
+
+/* Transiciones de ruta y de modales: cortas y sin rebote */
+.page-enter-active,
+.page-leave-active {
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.page-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Paneles oscuros fijos ------------------------------------------------
+   Sidebar, panel de marca, resúmenes y totales son siempre oscuros, también en
+   modo oscuro. Dentro de ellos se fijan las escalas de texto y superficie para
+   que no se inviertan con el tema. */
+.bg-panel {
+  --color-ink-300: #b9bfcb;
+  --color-ink-400: #9aa3b2;
+  --color-ink-500: #7c8496;
+  --color-surface: #ffffff;
+  --color-brand-400: #3fb3a0;
+  color: #ffffff;
+}
+
+/* ---- Caja: cifras grandes y teclas ---------------------------------------- */
+@layer components {
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  .kbd {
+    @apply rounded border border-current/25 px-1 font-mono text-[10px] leading-4 font-medium opacity-70;
+  }
+}

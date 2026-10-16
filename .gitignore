@@ -1,0 +1,32 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (secretos): nunca subir
+.env
+.env.*
+!.env.example
+
+# Build
+dist/
+build/
+
+# Prisma: el cliente generado se regenera con npm install
+# (las migraciones sí se suben)
+.prisma/
+
+# Fotos y archivos subidos en desarrollo
+uploads/
+
+# Logs y temporales
+*.log
+npm-debug.log*
+coverage/
+.tmp/
+*.tmp
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
