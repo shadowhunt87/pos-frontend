@@ -45,3 +45,39 @@ export const NCF_NAME: Record<string, string> = {
   E31: 'Factura de crédito fiscal electrónica',
   E32: 'Factura de consumo electrónica',
 };
+
+export const INVOICE_STATUS: Record<string, { label: string; tone: 'success' | 'warning' | 'danger' | 'info' | 'neutral' }> = {
+  DRAFT: { label: 'Borrador', tone: 'neutral' },
+  ISSUED: { label: 'Por cobrar', tone: 'info' },
+  PARTIALLY_PAID: { label: 'Pago parcial', tone: 'warning' },
+  PAID: { label: 'Pagada', tone: 'success' },
+  OVERDUE: { label: 'Vencida', tone: 'danger' },
+  VOIDED: { label: 'Anulada', tone: 'neutral' },
+};
+
+export const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  CASH: 'Efectivo',
+  CARD: 'Tarjeta',
+  BANK_TRANSFER: 'Transferencia',
+  TRANSFER: 'Transferencia',
+  CHECK: 'Cheque',
+};
+
+export const MOVEMENT_LABEL: Record<string, string> = {
+  PURCHASE: 'Compra',
+  SALE: 'Venta',
+  SALE_RETURN: 'Devolución de cliente',
+  PURCHASE_RETURN: 'Devolución a proveedor',
+  ADJUSTMENT_IN: 'Ajuste (entrada)',
+  ADJUSTMENT_OUT: 'Ajuste (salida)',
+  REVERSAL: 'Reverso',
+};
+
+/** De dónde salió una factura (el campo sourceModule del backend). */
+export function invoiceOrigin(sourceModule: string | null): string {
+  if (sourceModule === 'pos.venta') return 'Caja';
+  if (sourceModule === 'pos.factura') return 'Facturación';
+  if (sourceModule === 'pos.compra') return 'Compras';
+  if (!sourceModule) return 'Sistema contable';
+  return 'Otro sistema';
+}

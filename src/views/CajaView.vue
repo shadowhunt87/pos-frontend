@@ -103,12 +103,12 @@ async function init(): Promise<void> {
     ctx.value = c;
     if (!c.configured) {
       fatal.value = auth.can('configurar')
-        ? 'El punto de venta no está configurado. Complétalo en «Administración › Configuración».'
+        ? 'El punto de venta no está configurado. Complétalo en «Configuración».'
         : 'El punto de venta no está configurado. Pide a un administrador que lo configure.';
       return;
     }
     if (!c.terminals.length) {
-      fatal.value = 'No hay cajas (terminales) activas. Un administrador debe crear una en «Administración › Configuración».';
+      fatal.value = 'No hay cajas (terminales) activas. Un administrador debe crear una en «Configuración».';
       return;
     }
     if (!c.terminals.some((t) => t.id === terminalId.value)) terminalId.value = c.terminals.length === 1 ? c.terminals[0]!.id : null;
@@ -505,7 +505,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey));
         <button type="button" class="caja-act" @click="startClose"><Banknote class="size-4" aria-hidden="true" />Cerrar turno</button>
       </nav>
       <div class="ml-auto flex items-center gap-1">
-        <RouterLink v-if="auth.can('supervisar')" :to="{ name: 'admin' }" class="caja-act"><LayoutDashboard class="size-4" aria-hidden="true" />Administración</RouterLink>
+        <RouterLink :to="auth.can('supervisar') ? '/inicio' : '/facturas?pendientes=1'" class="caja-act"><LayoutDashboard class="size-4" aria-hidden="true" />{{ auth.can('supervisar') ? 'Menú' : 'Cobrar facturas' }}</RouterLink>
         <button type="button" class="caja-act" @click="exit"><LogOut class="size-4" aria-hidden="true" />Salir</button>
       </div>
     </header>
@@ -618,7 +618,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey));
             </button>
           </div>
           <p v-if="!visibleProducts.length" class="py-16 text-center text-sm text-ink-500">
-            {{ catalog?.products.length ? 'No hay productos con ese filtro.' : 'La caja no tiene productos. Un administrador los agrega en «Administración › Productos en caja».' }}
+            {{ catalog?.products.length ? 'No hay productos con ese filtro.' : 'La caja no tiene productos. Se agregan en «Productos» (con precio de venta y «Aparece en la caja»).' }}
           </p>
         </div>
       </section>

@@ -10,7 +10,6 @@ const future = Math.floor(Date.now() / 1000) + 3600;
 
 function signIn(role: Role) {
   const auth = useAuthStore();
-  auth.restore();
   const token = makeToken({ sub: 'u1', email: 'x@sirtech.do', role, companyId: 'c1', exp: future });
   window.localStorage.setItem('pos.token', token);
   window.localStorage.setItem('pos.user', JSON.stringify({ id: 'u1', email: 'x@sirtech.do', name: 'X', role, companyId: 'c1' }));
@@ -20,51 +19,90 @@ function signIn(role: Role) {
 
 async function go(path: string) {
   await router.push(path);
-  return router.currentRoute.value;
+  return router.currentRoute.value.name;
 }
 
-describe('rutas y permisos', () => {
+describe('rutas y permisos por rol', () => {
   beforeEach(async () => {
     setActivePinia(createPinia());
+    window.localStorage.clear();
+    useAuthStore().logout();
     await router.push('/login').catch(() => undefined);
   });
 
   it('sin sesión manda al login y recuerda adónde iba', async () => {
-    const r = await go('/admin/turnos');
-    expect(r.name).toBe('login');
-    expect(r.query.redirect).toBe('/admin/turnos');
+    await router.push('/turnos');
+    expect(router.currentRoute.value.name).toBe('login');
+    expect(router.currentRoute.value.query.redirect).toBe('/turnos');
   });
 
-  it('el cajero solo entra a la caja', async () => {
+  it('cajero: caja y cobro de facturas; nada de almacén ni administración', async () => {
     signIn('CASHIER');
-    expect((await go('/caja')).name).toBe('caja');
-    expect((await go('/admin/turnos')).name).toBe('caja');
-    expect((await go('/admin/configuracion')).name).toBe('caja');
+    expect(await go('/caja')).toBe('caja');
+    expect(await go('/facturas')).toBe('facturas');
+    expect(await go('/productos')).toBe('productos');
+    expect(await go('/facturas/nueva')).toBe('caja');
+    expect(await go('/compras')).toBe('caja');
+    expect(await go('/turnos')).toBe('caja');
+    expect(await go('/configuracion')).toBe('caja');
+    expect(await go('/contabilidad')).toBe('caja');
   });
 
-  it('el aprobador ve turnos y ventas, no la configuración', async () => {
+  it('vendedor: facturas y clientes; no la caja, el almacén ni la administración', async () => {
+    signIn('SELLER');
+    expect(await go('/')).toBe('facturas');
+    expect(await go('/facturas/nueva')).toBe('nueva-factura');
+    expect(await go('/clientes')).toBe('clientes');
+    expect(await go('/productos')).toBe('productos');
+    expect(await go('/caja')).toBe('facturas');
+    expect(await go('/compras')).toBe('facturas');
+    expect(await go('/usuarios')).toBe('facturas');
+  });
+
+  it('almacén: productos, inventario, compras y proveedores; no vende', async () => {
+    signIn('WAREHOUSE');
+    expect(await go('/')).toBe('inventario');
+    expect(await go('/compras/nueva')).toBe('nueva-compra');
+    expect(await go('/proveedores')).toBe('proveedores');
+    expect(await go('/inventario/p1')).toBe('kardex');
+    expect(await go('/facturas')).toBe('inventario');
+    expect(await go('/clientes')).toBe('inventario');
+    expect(await go('/caja')).toBe('inventario');
+  });
+
+  it('supervisor: caja, facturas, turnos y reportes; no configura', async () => {
     signIn('APPROVER');
-    expect((await go('/admin/turnos')).name).toBe('turnos');
-    expect((await go('/admin/reportes')).name).toBe('reportes');
-    expect((await go('/admin/promociones')).name).toBe('caja');
+    expect(await go('/')).toBe('inicio');
+    expect(await go('/turnos')).toBe('turnos');
+    expect(await go('/reportes')).toBe('reportes');
+    expect(await go('/facturas/nueva')).toBe('nueva-factura');
+    expect(await go('/configuracion')).toBe('inicio');
+    expect(await go('/contabilidad')).toBe('inicio');
   });
 
-  it('el contador y el administrador configuran', async () => {
+  it('contador: todo el POS y la contabilidad, sin usuarios', async () => {
     signIn('ACCOUNTANT');
-    expect((await go('/admin/configuracion')).name).toBe('configuracion');
-    expect((await go('/admin')).name).toBe('turnos');
+    expect(await go('/configuracion')).toBe('configuracion');
+    expect(await go('/contabilidad')).toBe('contabilidad');
+    expect(await go('/compras/nueva')).toBe('nueva-compra');
+    expect(await go('/usuarios')).toBe('inicio');
+  });
+
+  it('administrador: también los usuarios', async () => {
+    signIn('ADMIN');
+    expect(await go('/usuarios')).toBe('usuarios');
+    expect(await go('/login')).toBe('inicio');
+  });
+
+  it('las rutas de la primera versión siguen funcionando', async () => {
+    signIn('ADMIN');
+    expect(await go('/admin/turnos')).toBe('turnos');
   });
 
   it('consulta y auditor no usan el POS', async () => {
     signIn('VIEWER');
-    expect((await go('/caja')).name).toBe('sin-acceso');
-    expect((await go('/admin/turnos')).name).toBe('sin-acceso');
-  });
-
-  it('con sesión, el login lleva a la caja', async () => {
-    signIn('ADMIN');
-    await go('/admin/turnos');
-    expect((await go('/login')).name).toBe('caja');
+    expect(await go('/caja')).toBe('sin-acceso');
+    expect(await go('/facturas')).toBe('sin-acceso');
   });
 
   it('una sesión vencida guardada no se restaura', () => {
@@ -77,9 +115,15 @@ describe('rutas y permisos', () => {
   });
 
   it('los grupos de permisos son los del backend', () => {
-    expect(['CASHIER', 'APPROVER', 'ACCOUNTANT', 'ADMIN'].every((r) => can(r as Role, 'caja'))).toBe(true);
-    expect(can('CASHIER', 'supervisar')).toBe(false);
-    expect(can('APPROVER', 'configurar')).toBe(false);
-    expect(can('VIEWER', 'caja')).toBe(false);
+    expect(can('SELLER', 'vender')).toBe(true);
+    expect(can('SELLER', 'cobrar')).toBe(false);
+    expect(can('CASHIER', 'cobrar')).toBe(true);
+    expect(can('CASHIER', 'vender')).toBe(false);
+    expect(can('WAREHOUSE', 'editarCatalogo')).toBe(true);
+    expect(can('WAREHOUSE', 'anularInventario')).toBe(false);
+    expect(can('APPROVER', 'anularFacturas')).toBe(true);
+    expect(can('ACCOUNTANT', 'contabilidad')).toBe(true);
+    expect(can('ACCOUNTANT', 'usuarios')).toBe(false);
+    expect(can('VIEWER', 'catalogo')).toBe(false);
   });
 });

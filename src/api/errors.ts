@@ -28,11 +28,14 @@ export function messageFromBody(body: unknown): string | null {
   return Array.isArray(body.message) ? body.message.join('\n') : body.message;
 }
 
+const GENERIC_EN = new Set(['Forbidden resource', 'Forbidden', 'Unauthorized', 'Not Found', 'Internal server error', 'Too Many Requests', 'Bad Request']);
+
 const STATUS_MESSAGES: Record<number, string> = {
   401: 'Tu sesión expiró. Inicia sesión de nuevo.',
-  403: 'No tienes permiso para esta acción.',
+  403: 'Tu usuario no tiene permiso para esta acción.',
   404: 'No se encontró lo que buscabas.',
   429: 'Demasiados intentos. Espera un momento y vuelve a probar.',
+  500: 'El servidor tuvo un problema. Intenta de nuevo; si sigue, avisa al administrador.',
 };
 
 export function toApiError(error: unknown): ApiError {
@@ -41,7 +44,9 @@ export function toApiError(error: unknown): ApiError {
     if (!error.response) return new ApiError('No se pudo conectar con el servidor. Revisa tu conexión.', 0);
     const { status, data } = error.response;
     const body = isApiErrorBody(data) ? data : null;
-    const message = messageFromBody(body) ?? STATUS_MESSAGES[status] ?? `Error del servidor (${status})`;
+    const raw = messageFromBody(body);
+    // Los mensajes genéricos de Nest vienen en inglés: se usa el de la tabla. Los del negocio (en español) pasan tal cual.
+    const message = (raw && !GENERIC_EN.has(raw) ? raw : null) ?? STATUS_MESSAGES[status] ?? `Error del servidor (${status})`;
     return new ApiError(message, status, body);
   }
   return new ApiError(error instanceof Error ? error.message : 'Error inesperado', 0);

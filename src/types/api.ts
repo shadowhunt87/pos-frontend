@@ -11,7 +11,7 @@ export interface ApiErrorBody {
   [extra: string]: unknown;
 }
 
-export type Role = 'ADMIN' | 'ACCOUNTANT' | 'APPROVER' | 'VIEWER' | 'AUDITOR' | 'CASHIER';
+export type Role = 'ADMIN' | 'ACCOUNTANT' | 'APPROVER' | 'VIEWER' | 'AUDITOR' | 'CASHIER' | 'SELLER' | 'WAREHOUSE';
 
 export interface SessionUser {
   id: string;
@@ -520,4 +520,274 @@ export interface CashRegister {
   name: string;
   glAccountId: string | null;
   active: boolean;
+}
+
+// ---------------- Tienda: productos, inventario, compras, clientes y facturas (/pos/store) ----------------
+export interface StoreSummary {
+  receivable: { count: number; total: string; overdue: number };
+  outOfStock: number;
+  salesToday: { count: number; total: string };
+}
+
+export interface StoreTaxRate {
+  id: string;
+  name: string;
+  type: string;
+  rate: string;
+  sales: boolean;
+  purchases: boolean;
+}
+
+export interface StoreFunds {
+  cashRegisters: { id: string; name: string }[];
+  bankAccounts: { id: string; bankName: string; accountNumber: string }[];
+}
+
+export interface StoreProduct {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  kind: 'GOODS' | 'SERVICE';
+  unit: string;
+  salePrice: string | null;
+  purchasePrice: string | null;
+  saleTaxRateId: string | null;
+  purchaseTaxRateId: string | null;
+  tracksInventory: boolean;
+  stockQty: string;
+  avgCost: string;
+  active: boolean;
+  saleTaxRate: { name: string; rate: string } | null;
+  categoryId: string | null;
+  showInPos: boolean;
+  barcodes: string[];
+}
+
+export interface StoreProductRequest {
+  code?: string;
+  name?: string;
+  description?: string | null;
+  kind?: 'GOODS' | 'SERVICE';
+  unit?: string;
+  salePrice?: number | null;
+  purchasePrice?: number | null;
+  saleTaxRateId?: string | null;
+  purchaseTaxRateId?: string | null;
+  tracksInventory?: boolean;
+  active?: boolean;
+  categoryId?: string | null;
+  showInPos?: boolean;
+  barcodes?: string[];
+}
+
+export interface StockRow {
+  id: string;
+  code: string;
+  name: string;
+  unit: string;
+  active: boolean;
+  stockQty: string;
+  avgCost: string;
+  stockValue: string;
+}
+
+export interface StockPage extends Page<StockRow> {
+  totalValue: string;
+}
+
+export interface KardexMovement {
+  id: string;
+  seq: number;
+  date: string;
+  type: 'PURCHASE' | 'SALE' | 'SALE_RETURN' | 'PURCHASE_RETURN' | 'ADJUSTMENT_IN' | 'ADJUSTMENT_OUT' | 'REVERSAL';
+  quantity: string;
+  unitCost: string;
+  totalCost: string;
+  qtyAfter: string;
+  valueAfter: string;
+  invoice: { id: string; number: string; type: string; ncf: string | null } | null;
+  adjustment: { id: string; number: string } | null;
+}
+
+export interface KardexPage extends Page<KardexMovement> {
+  product: { id: string; code: string; name: string; unit: string; tracksInventory: boolean; stockQty: string; avgCost: string; stockValue: string };
+}
+
+export interface AdjustmentRow {
+  id: string;
+  number: string;
+  date: string;
+  reason: string;
+  status: 'POSTED' | 'VOIDED';
+  total?: string;
+  _count: { lines: number };
+}
+
+export interface AdjustmentDetail {
+  id: string;
+  number: string;
+  date: string;
+  reason: string;
+  status: 'POSTED' | 'VOIDED';
+  voidReason?: string | null;
+  lines: { id: string; quantity: string; unitCost: string; totalCost: string; product: { id: string; code: string; name: string; unit: string } }[];
+}
+
+export interface AdjustmentRequest {
+  date: string;
+  reason: string;
+  lines: { productId: string; quantity: number; unitCost?: number }[];
+}
+
+export interface PartnerRow {
+  id: string;
+  type: 'CUSTOMER' | 'SUPPLIER' | 'BOTH';
+  name: string;
+  tradeName: string | null;
+  taxId: string | null;
+  taxIdType: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  creditLimit: string | null;
+  paymentTermsDays: number;
+  defaultNcfType: string | null;
+  active: boolean;
+  balance: string;
+}
+
+export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE' | 'VOIDED';
+
+export interface InvoiceRow {
+  id: string;
+  number: string;
+  type: 'SALE' | 'PURCHASE' | 'CREDIT_NOTE' | 'DEBIT_NOTE';
+  ncf: string | null;
+  ncfType?: string | null;
+  issueDate: string;
+  dueDate: string | null;
+  subtotal?: string;
+  taxTotal?: string;
+  total: string;
+  balance: string;
+  status: InvoiceStatus;
+  sourceModule: string | null;
+  partner?: { id: string; name: string; taxId: string | null };
+}
+
+export interface PartnerDetail extends Omit<PartnerRow, 'balance'> {
+  balance: string;
+  invoices: InvoiceRow[];
+}
+
+export interface PartnerRequest {
+  name?: string;
+  tradeName?: string;
+  taxIdType?: 'RNC' | 'CEDULA' | 'PASSPORT';
+  taxId?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  creditLimit?: number;
+  paymentTermsDays?: number;
+  defaultNcfType?: string;
+  active?: boolean;
+}
+
+export interface InvoiceLine {
+  id: string;
+  description: string;
+  quantity: string;
+  unitPrice: string;
+  discount: string;
+  taxAmount: string;
+  /** Neto de la línea, sin ITBIS */
+  total: string;
+  productId: string | null;
+  taxRate: { name: string; rate: string } | null;
+}
+
+export interface InvoiceDetail {
+  id: string;
+  number: string;
+  type: 'SALE' | 'PURCHASE' | 'CREDIT_NOTE' | 'DEBIT_NOTE';
+  status: InvoiceStatus;
+  ncf: string | null;
+  ncfType: string | null;
+  issueDate: string;
+  dueDate: string | null;
+  subtotal: string;
+  discountTotal: string;
+  taxTotal: string;
+  withholdingTotal?: string;
+  total: string;
+  balance: string;
+  notes: string | null;
+  sourceModule: string | null;
+  partner: { id: string; name: string; taxId: string | null; address: string | null; phone: string | null; email: string | null };
+  lines: InvoiceLine[];
+  company: { name: string; legalName: string | null; taxId: string; address: string | null; phone: string | null };
+  payments: { id: string; number: string | null; date: string; method: string; reference: string | null; status: string; amount: string }[];
+}
+
+export interface InvoiceRequest {
+  clientUuid: string;
+  partnerId: string;
+  ncfType?: string;
+  dueDate?: string;
+  lines: { productId: string; quantity: number; discount?: number }[];
+  notes?: string;
+  approvalId?: string;
+}
+
+export interface PurchaseRequest {
+  clientUuid: string;
+  supplierId: string;
+  issueDate: string;
+  ncf?: string;
+  ncfType?: string;
+  lines: { productId: string; quantity: number; unitCost: number; taxRateId?: string | null }[];
+  notes?: string;
+}
+
+export type CollectMethod = 'CASH' | 'CARD' | 'TRANSFER' | 'CHECK';
+
+export interface CollectRequest {
+  amount: number;
+  method: CollectMethod;
+  cashRegisterId?: string;
+  bankAccountId?: string;
+  reference?: string;
+}
+
+// ---------------- Usuarios (rutas del núcleo, solo administrador) ----------------
+export interface UserRow {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
+  active: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+  twoFactor: { enabledAt: string | null } | null;
+}
+
+export interface CreateUserRequest {
+  email: string;
+  password: string;
+  name: string;
+  role: Role;
+  confirmPassword: string;
+  confirmCode?: string;
+}
+
+export interface UpdateUserRequest {
+  name?: string;
+  role?: Role;
+  active?: boolean;
+  confirmPassword: string;
+  confirmCode?: string;
 }

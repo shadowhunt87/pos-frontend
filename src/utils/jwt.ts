@@ -1,6 +1,6 @@
 import type { Role, TokenPayload } from '@/types/api';
 
-export const ROLES: readonly Role[] = ['ADMIN', 'ACCOUNTANT', 'APPROVER', 'VIEWER', 'AUDITOR', 'CASHIER'];
+export const ROLES: readonly Role[] = ['ADMIN', 'ACCOUNTANT', 'APPROVER', 'VIEWER', 'AUDITOR', 'CASHIER', 'SELLER', 'WAREHOUSE'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;

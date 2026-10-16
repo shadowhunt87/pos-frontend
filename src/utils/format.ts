@@ -91,3 +91,13 @@ export function dayBoundaryIso(day: string, end = false): string | null {
   const d = new Date(`${day}T${end ? '23:59:59.999' : '00:00:00.000'}-04:00`);
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
+
+/**
+ * Fecha sin hora (emisión, vencimiento, fecha de un cobro o de un ajuste): el backend la guarda como medianoche UTC.
+ * Se muestra tal cual, sin pasarla a la hora de Santo Domingo (que la correría al día anterior).
+ */
+export function formatDateOnly(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : formatDate(iso);
+}

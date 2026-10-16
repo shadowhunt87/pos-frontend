@@ -1,0 +1,118 @@
+<script setup lang="ts">
+import { FileText, Plus, Search } from 'lucide-vue-next';
+import { onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { errorMessage } from '@/api/errors';
+import { listInvoices } from '@/api/store';
+import EmptyState from '@/components/EmptyState.vue';
+import ErrorAlert from '@/components/ErrorAlert.vue';
+import LoadingState from '@/components/LoadingState.vue';
+import PageHeader from '@/components/PageHeader.vue';
+import PaginationBar from '@/components/PaginationBar.vue';
+import StatusBadge from '@/components/StatusBadge.vue';
+import { useAuthStore } from '@/stores/auth';
+import type { InvoiceRow } from '@/types/api';
+import { formatDateOnly, formatMoney } from '@/utils/format';
+import { INVOICE_STATUS, invoiceOrigin } from '@/utils/labels';
+
+const auth = useAuthStore();
+const route = useRoute();
+const router = useRouter();
+const LIMIT = 30;
+
+const q = ref('');
+const pending = ref(route.query.pendientes === '1');
+const rows = ref<InvoiceRow[]>([]);
+const total = ref(0);
+const page = ref(1);
+const loading = ref(true);
+const error = ref<string | null>(null);
+
+async function load(): Promise<void> {
+  loading.value = true;
+  error.value = null;
+  try {
+    const r = await listInvoices({ q: q.value.trim(), pending: pending.value || undefined, page: page.value, limit: LIMIT });
+    rows.value = r.data;
+    total.value = r.total;
+  } catch (e) {
+    error.value = errorMessage(e);
+  } finally {
+    loading.value = false;
+  }
+}
+
+watch(pending, (v) => {
+  page.value = 1;
+  void router.replace({ query: v ? { pendientes: '1' } : {} });
+  void load();
+});
+
+function search(): void {
+  page.value = 1;
+  void load();
+}
+
+function go(p: number): void {
+  page.value = p;
+  void load();
+}
+
+const overdue = (r: InvoiceRow) => !!r.dueDate && Number(r.balance) > 0 && r.status !== 'VOIDED' && r.dueDate.slice(0, 10) < new Date().toISOString().slice(0, 10);
+
+onMounted(load);
+</script>
+
+<template>
+  <div>
+    <PageHeader title="Facturas" subtitle="Todas las ventas: las de la caja y las facturas a crédito o a empresas.">
+      <template #actions>
+        <RouterLink v-if="auth.can('vender')" to="/facturas/nueva" class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-brand-500 px-4 text-sm font-semibold text-white hover:bg-brand-600">
+          <Plus class="size-4" aria-hidden="true" />Nueva factura
+        </RouterLink>
+      </template>
+    </PageHeader>
+
+    <div class="mb-4 flex flex-wrap items-end gap-3">
+      <form class="flex min-w-64 flex-1 gap-2" @submit.prevent="search">
+        <div class="relative flex-1">
+          <label for="inv-q" class="sr-only">Buscar</label>
+          <Search class="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+          <input id="inv-q" v-model="q" type="search" class="input pl-10" placeholder="Número, NCF o cliente" />
+        </div>
+      </form>
+      <div class="flex rounded-xl bg-ink-100 p-1" role="tablist">
+        <button type="button" role="tab" :aria-selected="!pending" :class="['min-h-9 rounded-lg px-3 text-sm font-semibold', !pending ? 'bg-surface shadow-card' : 'text-ink-600']" @click="pending = false">Todas</button>
+        <button type="button" role="tab" :aria-selected="pending" :class="['min-h-9 rounded-lg px-3 text-sm font-semibold', pending ? 'bg-surface shadow-card' : 'text-ink-600']" @click="pending = true">Por cobrar</button>
+      </div>
+    </div>
+
+    <LoadingState v-if="loading && !rows.length" variant="table" />
+    <ErrorAlert v-else-if="error" :message="error" retry @retry="load" />
+    <EmptyState v-else-if="!rows.length" :icon="FileText" :text="pending ? 'No hay facturas por cobrar.' : 'Todavía no hay facturas.'" />
+    <template v-else>
+      <section class="card overflow-x-auto p-0 sm:p-0">
+        <table class="table-base">
+          <thead>
+            <tr><th>Factura</th><th>Fecha</th><th>Cliente</th><th>NCF</th><th>Origen</th><th class="text-right">Total</th><th class="text-right">Saldo</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in rows" :key="r.id" class="cursor-pointer" tabindex="0" @click="router.push(`/facturas/${r.id}`)" @keydown.enter="router.push(`/facturas/${r.id}`)">
+              <td class="font-mono font-medium whitespace-nowrap">{{ r.number }}</td>
+              <td class="whitespace-nowrap">{{ formatDateOnly(r.issueDate) }}</td>
+              <td>{{ r.partner?.name }}</td>
+              <td class="font-mono">{{ r.ncf ?? '—' }}</td>
+              <td class="text-ink-500">{{ invoiceOrigin(r.sourceModule) }}</td>
+              <td class="num text-right">{{ formatMoney(r.total) }}</td>
+              <td :class="['num text-right', Number(r.balance) > 0 && 'font-semibold']">{{ formatMoney(r.balance) }}</td>
+              <td>
+                <StatusBadge :tone="overdue(r) ? 'danger' : INVOICE_STATUS[r.status]?.tone ?? 'neutral'">{{ overdue(r) ? 'Vencida' : INVOICE_STATUS[r.status]?.label ?? r.status }}</StatusBadge>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+      <PaginationBar :page="page" :limit="LIMIT" :total="total" :busy="loading" @go="go" />
+    </template>
+  </div>
+</template>

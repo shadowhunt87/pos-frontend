@@ -159,7 +159,7 @@ export function sumQuote(lines: QuotedLine[]): QuoteTotals {
 }
 
 /** Precio de venta con su ITBIS, para mostrar en la tarjeta del producto. */
-export function priceWithTax(p: PosProduct): string {
+export function priceWithTax(p: Pick<PosProduct, 'salePrice' | 'tax'>): string {
   const base = D(p.salePrice);
   return r2(p.tax ? base.plus(base.times(p.tax.rate).div(100)) : base).toFixed(2);
 }

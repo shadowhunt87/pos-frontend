@@ -23,6 +23,9 @@ async function setup() {
     routes: [
       { path: '/login', name: 'login', component: LoginView },
       { path: '/caja', name: 'caja', component: { template: '<p>caja</p>' } },
+      { path: '/inicio', name: 'inicio', component: { template: '<p>inicio</p>' } },
+      { path: '/facturas', name: 'facturas', component: { template: '<p>facturas</p>' } },
+      { path: '/inventario', name: 'inventario', component: { template: '<p>inventario</p>' } },
       { path: '/sin-acceso', name: 'sin-acceso', component: { template: '<p>sin acceso</p>' } },
     ],
   });
@@ -56,6 +59,16 @@ describe('LoginView', () => {
     expect(router.currentRoute.value.name).toBe('caja');
   });
 
+  it('cada rol de tienda entra a su área', async () => {
+    for (const [role, home] of [['SELLER', 'facturas'], ['WAREHOUSE', 'inventario'], ['APPROVER', 'inicio']] as const) {
+      vi.mocked(login).mockResolvedValue({ access_token: tokenFor(role), user: userFor(role) });
+      const { wrapper, router } = await setup();
+      await fill(wrapper, 'x@sirtech.do', 'clave-segura');
+      expect(router.currentRoute.value.name).toBe(home);
+      wrapper.unmount();
+    }
+  });
+
   it('un usuario sin acceso al POS va a «sin acceso»', async () => {
     vi.mocked(login).mockResolvedValue({ access_token: tokenFor('VIEWER'), user: userFor('VIEWER') });
     const { wrapper, router } = await setup();
@@ -87,7 +100,7 @@ describe('LoginView', () => {
     await wrapper.get('form').trigger('submit');
     await flushPromises();
     expect(loginTwoFactor).toHaveBeenCalledWith('desafio', '123456');
-    expect(router.currentRoute.value.name).toBe('caja');
+    expect(router.currentRoute.value.name).toBe('inicio');
   });
 
   it('inscripción obligatoria: muestra el QR y luego los códigos de emergencia', async () => {
@@ -106,6 +119,6 @@ describe('LoginView', () => {
     expect(router.currentRoute.value.name).toBe('login');
     await wrapper.get('button').trigger('click');
     await flushPromises();
-    expect(router.currentRoute.value.name).toBe('caja');
+    expect(router.currentRoute.value.name).toBe('inicio');
   });
 });

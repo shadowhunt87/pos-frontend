@@ -363,3 +363,9 @@
     @apply rounded border border-current/25 px-1 font-mono text-[10px] leading-4 font-medium opacity-70;
   }
 }
+
+/* Un contenedor con desplazamiento horizontal ancla a sus hijos posicionados (p. ej. los textos sr-only de las
+   tablas): si no, se escapan del contenedor y la página entera se desplaza de lado en el celular. */
+.overflow-x-auto {
+  position: relative;
+}

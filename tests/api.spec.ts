@@ -59,8 +59,15 @@ describe('capa de API', () => {
     use(fakeAdapter(() => ({ status: 401, data: { message: 'Unauthorized', statusCode: 401 } })).adapter);
     await expect(getSettings()).rejects.toBeInstanceOf(ApiError);
     expect(onUnauthorized).toHaveBeenCalledTimes(1);
-    await expect(login({ email: 'a@b.com', password: 'malaclave' })).rejects.toThrow('Unauthorized');
+    await expect(login({ email: 'a@b.com', password: 'malaclave' })).rejects.toMatchObject({ status: 401 });
     expect(onUnauthorized).toHaveBeenCalledTimes(1);
+  });
+
+  it('traduce los mensajes genéricos de Nest y deja pasar los del negocio', async () => {
+    use(fakeAdapter(() => ({ status: 403, data: { message: 'Forbidden resource', error: 'Forbidden', statusCode: 403 } })).adapter);
+    await expect(getSettings()).rejects.toThrow('Tu usuario no tiene permiso para esta acción.');
+    use(fakeAdapter(() => ({ status: 401, data: { message: 'Credenciales inválidas', statusCode: 401 } })).adapter);
+    await expect(login({ email: 'a@b.com', password: 'malaclave' })).rejects.toThrow('Credenciales inválidas');
   });
 
   it('une los mensajes de validación con saltos de línea', async () => {
